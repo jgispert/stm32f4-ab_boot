@@ -1,0 +1,13 @@
+{
+  "name": "stm32f4-ab_boot",
+  "version": "0.1.0",
+  "description": "Arranque A/B y actualización del firmware por un enlace de texto (#FW) para STM32F4: cargador de 2 KB, dos copias con prueba y vuelta atrás, estado con CRC resistente a cortes de luz. Flash a nivel de registro: sin HAL.",
+  "keywords": ["stm32", "stm32f4", "bootloader", "ota", "firmware-update", "a/b", "rollback"],
+  "authors": [{ "name": "Joan Gispert", "url": "https://github.com/jgispert" }],
+  "repository": { "type": "git", "url": "https://github.com/jgispert/stm32f4-ab_boot.git" },
+  "frameworks": ["arduino", "stm32cube", "*"],
+  "platforms": ["ststm32"],
+  "headers": ["FwUpdate.h", "AbPlatformF4.h", "AbBootloader.h"],
+  "build": { "srcDir": "src", "libArchive": false },
+  "export": { "exclude": ["examples", "test", ".github"] }
+}

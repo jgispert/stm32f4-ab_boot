@@ -1,0 +1,50 @@
+# Integración continua: pruebas en PC, cargador y ejemplo (copias A/B + .fwu).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Pruebas en PC
+        run: ./test/run.sh
+
+      - name: Caché de PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('bootloader/platformio.ini', 'examples/serial/platformio.ini') }}
+
+      - name: Instalar PlatformIO
+        run: pip install platformio
+
+      - name: Cargador
+        run: |
+          pio run -d bootloader
+          TC=~/.platformio/packages/toolchain-gccarmnoneeabi/bin
+          BL=bootloader/.pio/build/bootloader/firmware.elf
+          SZ=$($TC/arm-none-eabi-size $BL | tail -1 | awk '{print $1+$2}')
+          echo "::notice title=cargador::$SZ bytes de 16384"
+          test "$SZ" -lt 16384
+
+      - name: Ejemplo Arduino (copias A y B) y paquete .fwu
+        run: |
+          cd examples/serial
+          pio run -e slot_a -e slot_b
+          python3 ../../tools/fw_package.py --slot-a .pio/build/slot_a/firmware.bin \
+                  --slot-b .pio/build/slot_b/firmware.bin --product EJEMPLO-AB
+          TC=~/.platformio/packages/toolchain-gccarmnoneeabi/bin
+          for e in slot_a slot_b; do
+            VEC=$($TC/arm-none-eabi-nm .pio/build/$e/firmware.elf | grep -E ' g_pfnVectors$' | cut -d' ' -f1)
+            echo "::notice title=$e::vectores 0x$VEC"
+          done
+          echo "::notice title=fwu::$(ls dist/)"
