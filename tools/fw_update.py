@@ -11,6 +11,7 @@ puerto serie / USB CDC. Es también la referencia para otras implementaciones
     python3 fw_update.py fichero.fwu --corrupt         # un byte cambiado → ERR CRC
     python3 fw_update.py fichero.fwu --swap            # la copia equivocada → ERR SLOT
     python3 fw_update.py fichero.fwu --stop-at 50      # cortar a mitad (50 %)
+    python3 fw_update.py otro.fwu --force-product     # enviar aunque el producto no coincida → ERR PRODUCT
 
 Pasos: #FW (qué copia está libre) → BEGIN → DATA × n → END → APPLY → el equipo
 se reinicia → reabrir el puerto → #FW (debe decir la copia nueva, STATE=TRIAL y
@@ -110,6 +111,8 @@ def main():
     ap.add_argument("--corrupt", action="store_true", help="cambiar un byte (prueba de ERR CRC)")
     ap.add_argument("--swap", action="store_true", help="enviar la imagen de la otra copia (ERR SLOT)")
     ap.add_argument("--stop-at", type=int, default=None, help="dejar de enviar al N %% (corte)")
+    ap.add_argument("--force-product", action="store_true",
+                    help="no comprobar el producto en el PC (prueba de ERR PRODUCT en el equipo)")
     a = ap.parse_args()
 
     z = zipfile.ZipFile(a.fwu)
@@ -132,7 +135,7 @@ def main():
         return 0 if ln == "#FW CONFIRMED" else 1
     if inf.get("SLOT") in (None, "NONE"):
         sys.exit("El equipo no tiene cargador (se grabó sin él): primera instalación con el programador")
-    if inf.get("PROD") != man["product"]:
+    if inf.get("PROD") != man["product"] and not a.force_product:
         sys.exit(f"Producto del equipo {inf.get('PROD')!r} y del fichero {man['product']!r} distintos")
     free = inf["FREE"]
     send_slot = ("A" if free == "B" else "B") if a.swap else free

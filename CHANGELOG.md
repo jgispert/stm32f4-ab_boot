@@ -12,5 +12,6 @@ Primera versión, extraída de VENDO SLAVE (Fase 8.5, decisión D29).
 - Protocolo de texto `#FW` (INFO, BEGIN, DATA, END, APPLY, CONFIRM, ABORT) con
   comprobación de CRC32, producto y dirección de enlace (cabecera AB_FW_HEADER).
 - Flash del STM32F4 a nivel de registro (sector 0 protegido).
-- Herramientas: `fw_package.py` (.fwu) y `fw_update.py` (actualizar por un puerto serie).
+- Herramientas: `fw_package.py` (.fwu) y `fw_update.py` (actualizar por un puerto serie;
+  `--force-product` para probar el rechazo `ERR PRODUCT` en el equipo).
 - Pruebas en PC con una flash en RAM; CI con el cargador y un ejemplo Arduino.
